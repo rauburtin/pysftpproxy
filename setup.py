@@ -13,7 +13,7 @@ setup(
     version='1.0.0',
     description='An OpenSSH SFTP Proxy wrapper in Python.',
     long_description=readme(),
-    url='https://github.com/rauburtin/pysftp-proxy',
+    url='https://github.com/rauburtin/pysftpproxy',
 
     author="rauburtin",
     author_email="rauburtin@gmail.com",
