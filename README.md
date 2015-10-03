@@ -10,11 +10,11 @@ sudo apt-get install redis-server
 
 ##Features
 
-This SFTP Proxy can be used to redirect sftp request from a specific user to a specific remote server and port
+This SFTP Proxy can be used to redirect sftp requests from a specific user to a particular remote server and port.
 
-User => SEFTP PROXY (Check User Credentials, if OK it redirects to) => RemoteServer:Port
+User => SftpProxy (CHECKS User Credentials, if OK it redirects) => RemoteServer:Port
 
-This configuration can be usefull to redirect user to a sftp container in a docker host
+This program can be useful to redirect sftp user requests to a sftp container in a docker host, so the user can access in a secure way to the volumes of a specific container
 
 ##Usage
 
