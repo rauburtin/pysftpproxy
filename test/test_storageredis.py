@@ -15,8 +15,7 @@ class StorageRedisTest(unittest.TestCase):
                 redis_db,password=redis_password)
 
         self.pubkeys = {}
-        self.pubkeys['ssh-rsa ' \
-                'AAAAB3NzaC1yc2EAAAABIwAAAGEArzJx8OYOnJmzf4tfBEvLi8DVPr' \
+        self.pubkeys['AAAAB3NzaC1yc2EAAAABIwAAAGEArzJx8OYOnJmzf4tfBEvLi8DVPr' \
                 'J3/c9k2I/Az64fxjHf9imyRJbixtQhlH9lfNjUIx+' \
                 '4LmrJH5QNRsFporcHDKOTwTTYLh5KmRpslkYHRivcJSkbh/C+BR3utDS555mV'] = 'rauburtin'
 
@@ -37,7 +36,7 @@ class StorageRedisTest(unittest.TestCase):
 
     def test_get1(self):
         sredis = StorageRedis()
-        pubkey = 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAGEArzJx8OYOnJmzf4tfBEvLi8DVPrJ3/c9k2I/Az64fxjHf9imyRJbixtQhlH9lfNjUIx+4LmrJH5QNRsFporcHDKOTwTTYLh5KmRpslkYHRivcJSkbh/C+BR3utDS555mV'
+        pubkey = 'AAAAB3NzaC1yc2EAAAABIwAAAGEArzJx8OYOnJmzf4tfBEvLi8DVPrJ3/c9k2I/Az64fxjHf9imyRJbixtQhlH9lfNjUIx+4LmrJH5QNRsFporcHDKOTwTTYLh5KmRpslkYHRivcJSkbh/C+BR3utDS555mV'
         username = sredis.get_username(pubkey)
         self.assertEqual(username,"rauburtin")
 
@@ -46,7 +45,7 @@ class StorageRedisTest(unittest.TestCase):
 
     def test_add1(self):
         sredis = StorageRedis()
-        pubkey = 'ssh-rsa BAAAB3NzaC1yc2EAAAABIwAAAGEArzJx8OYOnJmzf4tfBEvLi8DVPrJ3/c9k2I/Az64fxjHf9imyRJbixtQhlH9lfNjUIx+4LmrJH5QNRsFporcHDKOTwTTYLh5KmRpslkYHRivcJSkbh/C+BR3utDS555mV'
+        pubkey = 'BAAAB3NzaC1yc2EAAAABIwAAAGEArzJx8OYOnJmzf4tfBEvLi8DVPrJ3/c9k2I/Az64fxjHf9imyRJbixtQhlH9lfNjUIx+4LmrJH5QNRsFporcHDKOTwTTYLh5KmRpslkYHRivcJSkbh/C+BR3utDS555mV'
         username = 'rauburtin1'
         self.assertTrue(sredis.add_username(pubkey,username))
         username = sredis.get_username(pubkey)
