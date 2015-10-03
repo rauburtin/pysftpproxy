@@ -20,7 +20,7 @@ This program can be useful to redirect sftp user requests to a sftp container in
 
 * Insert some data in the Redis database, look at the examples directory
 
-Here, we just simulate the remote server as the localhost and the remote port to 22
+Here, we just simulate the remote server as the localhost and the remote port as the standard SSH Port (22)
 
 * Start the sftp proxy server
 ```Shell
