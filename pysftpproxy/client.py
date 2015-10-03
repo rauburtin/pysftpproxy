@@ -30,7 +30,7 @@ class SFTPSession(SSHChannel):
 
 
     def _cbSFTP(self, result):
-        # great explaination here http://stackoverflow.com/questions/5195427/twisted-conch-filetransfer
+        # great explanation here http://stackoverflow.com/questions/5195427/twisted-conch-filetransfer
         client = FileTransferClient()
         client.makeConnection(self)
         self.dataReceived = client.dataReceived
