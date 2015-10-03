@@ -89,9 +89,3 @@ class SFTPServerProxyClient(object):
         self._sftp = conn._sftp
         return self._sftp
 
-def main():
-    pass
-
-
-if __name__ == '__main__':
-    main()
