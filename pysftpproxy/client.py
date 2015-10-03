@@ -1,6 +1,7 @@
 """Proxy SFTP client. Forward each request to another SFTP server."""
 
 import sys 
+import os
 
 from twisted.python import log
 import logging
@@ -16,9 +17,7 @@ from twisted.conch.ssh.connection import SSHConnection
 from twisted.conch.ssh.channel import SSHChannel
 from twisted.conch.ssh.filetransfer import FXF_WRITE, FXF_CREAT, \
     FXF_TRUNC, FileTransferClient
-publicKeyPath  = "/home/rauburtin/.ssh/id_rsa.pub"
 
-privateKeyPath = "/home/rauburtin/.ssh/id_rsa"
 
 
 class SFTPSession(SSHChannel):
@@ -57,9 +56,15 @@ class SFTPServerProxyClient(object):
                  known_hosts_path=None):
 
 
-        self.user = 'rauburtin'
+        self.user = os.environ.get("SFTPCLIENT_USER",'rauburtin')
+
         self.host = 'localhost'
+        if remote:
+            self.host = remote
+
         self.port = 22
+        if port:
+            self.port = port
 
         self.dcli = self.connect_sftp()
 
@@ -67,13 +72,6 @@ class SFTPServerProxyClient(object):
         #we can't use only a deferred because a deferred can only be called once
         self.dcli.addCallback(self.set_client)	
         self.dcli.addErrback(log.err, "Problem with SFTP transfer")
-
-        #In the example of sftp client, it is just for one command se they close the server just after,
-        #I just comment here, and do some tests 
-        #self.dcli.addCallback(lambda ignored: reactor.stop())
-
-        #The reactor is aldreadu run by the server
-        #reactor.run()
 
     def set_client(self,client):
         log.msg("Setting client", logLevel=logging.DEBUG)

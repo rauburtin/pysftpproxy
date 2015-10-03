@@ -6,7 +6,7 @@ import base64, os, fcntl, tty, struct
 
 from twisted.enterprise import adbapi
 
-from twisted.cred import portal, checkers, credentials
+from twisted.cred import portal, checkers, credentials, error
 from twisted.conch import error, avatar
 from twisted.conch.unix import SSHSessionForUnixConchUser,UnixConchUser, SFTPServerForUnixConchUser, UnixSFTPDirectory, UnixSFTPFile
 from twisted.conch.checkers import SSHPublicKeyDatabase
@@ -22,24 +22,21 @@ from pysftpproxy.client import SFTPServerProxyClient
 from twisted.internet.protocol import Protocol, ReconnectingClientFactory
 from twisted.conch.ls import lsLine
 from pysftpproxy.levfilelogger import LevelFileLogObserver
+from pysftpproxy.storageredis import StorageRedis
 
 import sys
 
-#TODO, has to be changed
-publicKey  = 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAGEArzJx8OYOnJmzf4tfBEvLi8DVPrJ3/c9k2I/Az64fxjHf9imyRJbixtQhlH9lfNjUIx+4LmrJH5QNRsFporcHDKOTwTTYLh5KmRpslkYHRivcJSkbh/C+BR3utDS555mV'
+publicKeyPath  = os.environ.get("SFTPPROXY_PUBLICKEY_PATH",
+    "/home/rauburtin/.ssh/id_rsa.pub")
+publicKey = open(publicKeyPath,"r").read()
+if publicKey.endswith("\n"):
+    publicKey = publicKey[:-1]
 
-privateKey = """-----BEGIN RSA PRIVATE KEY-----
-MIIByAIBAAJhAK8ycfDmDpyZs3+LXwRLy4vA1T6yd/3PZNiPwM+uH8Yx3/YpskSW
-4sbUIZR/ZXzY1CMfuC5qyR+UDUbBaaK3Bwyjk8E02C4eSpkabJZGB0Yr3CUpG4fw
-vgUd7rQ0ueeZlQIBIwJgbh+1VZfr7WftK5lu7MHtqE1S1vPWZQYE3+VUn8yJADyb
-Z4fsZaCrzW9lkIqXkE3GIY+ojdhZhkO1gbG0118sIgphwSWKRxK0mvh6ERxKqIt1
-xJEJO74EykXZV4oNJ8sjAjEA3J9r2ZghVhGN6V8DnQrTk24Td0E8hU8AcP0FVP+8
-PQm/g/aXf2QQkQT+omdHVEJrAjEAy0pL0EBH6EVS98evDCBtQw22OZT52qXlAwZ2
-gyTriKFVoqjeEjt3SZKKqXHSApP/AjBLpF99zcJJZRq2abgYlf9lv1chkrWqDHUu
-DZttmYJeEfiFBBavVYIF1dOlZT0G8jMCMBc7sOSZodFnAiryP+Qg9otSBjJ3bQML
-pSTqy7c3a2AScC/YyOwkDaICHnnD3XyjMwIxALRzl0tQEKMXs6hH8ToUdlLROCrP
-EhQ0wahUTCk1gKA4uPD6TMTChavbh4K63OvbKg==
------END RSA PRIVATE KEY-----"""
+privateKeyPath = os.environ.get("SFTPPROXY_PRIVATEKEY_PATH",
+    "/home/rauburtin/.ssh/id_rsa")
+privateKey = open(privateKeyPath,"r").read()
+if privateKey.endswith("\n"):
+    privateKey = privateKey[:-1]
 
 
 class PublicKeyCredentialsChecker:
@@ -47,39 +44,19 @@ class PublicKeyCredentialsChecker:
     #Only chek publick keys used by client
     credentialInterfaces = (credentials.ISSHPrivateKey,)
 
-    #def __init__(self, dbpool):
-    #  pass
-      #self.dbpool = dbpool
-
     def requestAvatarId(self, credentials):
         # check http://wiki.velannes.com/doku.php?id=python:programmes:twisted_ssh_server
         publickey = base64.b64encode(credentials.blob)
-        log.msg("My publickey:%s" % (publickey), logLevel=logging.DEBUG)
-        log.msg("username %s" % (credentials.username), logLevel=logging.DEBUG)
+        log.msg("Client publickey:%s" % (publickey), logLevel=logging.DEBUG)
+        log.msg("Client username %s" % (credentials.username), logLevel=logging.DEBUG)
 
-	return defer.succeed(credentials.username)
-
-        #return publickey
-        # SQL Injection ...
-        #defer = self.dbpool.runQuery("SELECT account FROM publickeys WHERE publickey = '%s'" % publickey)
-        #defer.addCallback(self._cbRequestAvatarId, credentials)
-        #defer.addErrback(self._ebRequestAvatarId)
-
-        # return "sqale"
-        #return defer
-
-    # TODO
-    def _cbRequestAvatarId(self, result, credentials):
-        if result:
-            return result[0][0]
+        sredis = StorageRedis()
+        username = sredis.get_username(publickey)
+        if username == credentials.username:
+	        return defer.succeed(credentials.username)
         else:
-            f = failure.Failure()
-            log.err()
-            return f
-
-    # TODO
-    def _ebRequestAvatarId(self, f):
-        return f
+            return defer.fail(error.UnauthorizedLogin(
+                "invalid pubkey for username: %s" % (credentials.username)))
 
 class ProxySSHUser(avatar.ConchUser):
 
@@ -93,15 +70,20 @@ class ProxySSHUser(avatar.ConchUser):
         #here we can create the client
         #need to pass the remote ssh server ip and port
         log.msg("Start SFTPServerProxyClient", logLevel=logging.DEBUG)
-        self.proxyclient = SFTPServerProxyClient()
+        sredis = StorageRedis()
+        userinfo = sredis.get_userinfo(username)
+        self.proxyclient = SFTPServerProxyClient(
+                remote=userinfo['remote'],
+                port=int(userinfo['port']))
 
 
-    # Mac
     def getUserGroupId(self):
-        return 1000,1000
+        userid = int(os.environ.get("SFTPPROXY_USERID",1000))
+        groupid = int(os.environ.get("SFTPPROXY_GROUPID",1000))
+        return userid,groupid
 
     def getHomeDir(self):
-        return '/home/rauburtin'
+        return os.environ.get("SFTPPROXY_HOME",'/home/rauburtin')
 
     def getOtherGroups(self):
         return self.otherGroups
@@ -274,8 +256,8 @@ class ProxySSHFactory(factory.SSHFactory):
     }
 
 class ProxySFTPServer(object):
-    def __init__(self, filelog=None, dirlog="../log/", rotateLengthMB=10,
-            maxRotatedFiles=10):
+    def __init__(self, filelog=None, dirlog="../log/", rotateLengthMB=1,
+            maxRotatedFiles=100):
         f = sys.stdout
         if filelog:
             if not os.path.isdir(dirlog):
@@ -285,8 +267,6 @@ class ProxySFTPServer(object):
                     maxRotatedFiles=maxRotatedFiles)
 
         self.logger = LevelFileLogObserver(f, logging.DEBUG)
-
-        #dbpool = adbapi.ConnectionPool("MySQLdb", db='test', host='localhost', user='root')
 
     def run(self):
 
@@ -302,9 +282,9 @@ class ProxySFTPServer(object):
         portal.registerChecker(PublicKeyCredentialsChecker())
         ProxySSHFactory.portal = portal
 
-        reactor.listenTCP(5022, ProxySSHFactory())
+        reactor.listenTCP(int(os.environ.get("SFTPPROXY_PORT",5022)), ProxySSHFactory())
         reactor.run()
 
 if __name__ == '__main__':
-    proxyserver = ProxySFTPServer(filelog="pysftpproxy.log")
+    proxyserver = ProxySFTPServer()
     proxyserver.run()

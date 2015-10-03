@@ -4,3 +4,4 @@ pycrypto==2.6.1
 #python-apt===0.9.3.5ubuntu1
 #python-debian===0.1.21-nmu2ubuntu2
 Twisted-Core==13.2.0
+redis==2.10.3

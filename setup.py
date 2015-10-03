@@ -22,9 +22,9 @@ setup(
     packages=['pysftpproxy'],
     scripts=['bin/pysftpproxy'],
     test_suite='nose.collector',
-    tests_require=['nose', 'twisted','pycrypto','pyasn1'],
+    tests_require=['nose', 'twisted','pycrypto','pyasn1','redis'],
 
-    install_requires=['twisted','pycrypto','pyasn1'],
+    install_requires=['twisted','pycrypto','pyasn1','redis'],
 
     keywords=["pysftpproxy", "sftp", "openssh", "ssh", "proxy"],
     classifiers=[
