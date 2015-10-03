@@ -5,7 +5,6 @@ The SFTP server that acts as a reverse proxy
 import base64, os, fcntl, tty, struct
 
 from twisted.enterprise import adbapi
-import logging
 
 from twisted.cred import portal, checkers, credentials
 from twisted.conch import error, avatar
@@ -14,13 +13,15 @@ from twisted.conch.checkers import SSHPublicKeyDatabase
 from twisted.conch.ssh import factory, userauth, connection, keys, session
 from twisted.internet import reactor, protocol, defer, task
 from twisted.internet.defer import inlineCallbacks
-from twisted.python import log
+from twisted.python import log, logfile
+import logging
 from zope.interface import implements
 from twisted.python import components, failure
 from twisted.conch.ssh import session, forwarding, filetransfer
 from pysftpproxy.client import SFTPServerProxyClient
 from twisted.internet.protocol import Protocol, ReconnectingClientFactory
 from twisted.conch.ls import lsLine
+from pysftpproxy.levfilelogger import LevelFileLogObserver
 
 import sys
 
@@ -53,8 +54,8 @@ class PublicKeyCredentialsChecker:
     def requestAvatarId(self, credentials):
         # check http://wiki.velannes.com/doku.php?id=python:programmes:twisted_ssh_server
         publickey = base64.b64encode(credentials.blob)
-        log.msg("My publickey:%s" % (publickey),logLevel=logging.DEBUG )
-        log.msg("username %s" % (credentials.username),logLevel=logging.DEBUG)
+        log.msg("My publickey:%s" % (publickey), logLevel=logging.DEBUG)
+        log.msg("username %s" % (credentials.username), logLevel=logging.DEBUG)
 
 	return defer.succeed(credentials.username)
 
@@ -89,8 +90,9 @@ class ProxySSHUser(avatar.ConchUser):
 
         self.channelLookup.update({'session':session.SSHSession})
         self.subsystemLookup['sftp'] = filetransfer.FileTransferServer
-	#here we can create the client
-        log.msg("Start SFTPServerProxyClient")
+        #here we can create the client
+        #need to pass the remote ssh server ip and port
+        log.msg("Start SFTPServerProxyClient", logLevel=logging.DEBUG)
         self.proxyclient = SFTPServerProxyClient()
 
 
@@ -134,12 +136,12 @@ class ProxySSHUser(avatar.ConchUser):
 
     def logout(self):
         # Remove all listeners.
-        log.msg("logout")
+        log.msg("logout", logLevel=logging.DEBUG )
         for listener in self.listeners.itervalues():
             self._runAsUser(listener.stopListening)
         log.msg(
             'avatar %s logging out (%i)'
-            % (self.username, len(self.listeners)))
+            % (self.username, len(self.listeners)), logLevel=logging.DEBUG)
 
 class ProxySSHRealm:
     implements(portal.IRealm)
@@ -272,19 +274,27 @@ class ProxySSHFactory(factory.SSHFactory):
     }
 
 class ProxySFTPServer(object):
-    def __init__(self, logfile=None):
-        self.logfile = None
-        if logfile:
-            self.logfile = open(logfile, 'a')
-            sys.stderr = self.logfile
+    def __init__(self, filelog=None, dirlog="../log/", rotateLengthMB=10,
+            maxRotatedFiles=10):
+        f = sys.stdout
+        if filelog:
+            if not os.path.isdir(dirlog):
+                os.makedirs(dirlog)
+            f  = logfile.LogFile(filelog, dirlog,
+                    rotateLength=rotateLengthMB*1000000,
+                    maxRotatedFiles=maxRotatedFiles)
+
+        self.logger = LevelFileLogObserver(f, logging.DEBUG)
 
         #dbpool = adbapi.ConnectionPool("MySQLdb", db='test', host='localhost', user='root')
 
     def run(self):
 
         global portal
-        log.startLogging(sys.stdout)
-        log.msg("Logging started")
+
+        #Start Logging
+        log.addObserver(self.logger.emit)
+        log.msg("Logging started", logLevel=logging.DEBUG)
 
         portal = portal.Portal(ProxySSHRealm())
 
@@ -296,5 +306,5 @@ class ProxySFTPServer(object):
         reactor.run()
 
 if __name__ == '__main__':
-    proxyserver = ProxySFTPServer()
+    proxyserver = ProxySFTPServer(filelog="pysftpproxy.log")
     proxyserver.run()

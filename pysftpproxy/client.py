@@ -3,6 +3,7 @@
 import sys 
 
 from twisted.python import log
+import logging
 
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred
@@ -34,19 +35,19 @@ class SFTPSession(SSHChannel):
         client = FileTransferClient()
         client.makeConnection(self)
         self.dataReceived = client.dataReceived
-	#here we fire the _sftp Deferred with the reference to the client
+        #here we fire the _sftp Deferred with the reference to the client
         self.conn._sftp.callback(client)
         self.conn.transport.transport.setTcpNoDelay(1)
 
     def closed(self):
-        log.msg("channel Closed", self.catData)
+        log.msg("channel Closed", self.catData, logLevel=logging.DEBUG)
 
 
 class SFTPConnection(SSHConnection):
     def serviceStarted(self):
         self.openChannel(SFTPSession())
     def serviceStopped(self):
-        log.msg("Service Stopped")
+        log.msg("Service Stopped", logLevel=logging.DEBUG)
 
 
 class SFTPServerProxyClient(object): 
@@ -75,7 +76,7 @@ class SFTPServerProxyClient(object):
         #reactor.run()
 
     def set_client(self,client):
-        log.msg("Setting client")
+        log.msg("Setting client", logLevel=logging.DEBUG)
         self.client = client
 
     def connect_sftp(self):
