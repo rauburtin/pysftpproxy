@@ -52,8 +52,11 @@ class PublicKeyCredentialsChecker:
 
         sredis = StorageRedis()
         username = sredis.get_username(publickey)
+
+        log.msg("username from redis",username, logLevel=logging.DEBUG)
+
         if username == credentials.username:
-	        return defer.succeed(credentials.username)
+	    return defer.succeed(credentials.username)
         else:
             return defer.fail(error.UnauthorizedLogin(
                 "invalid pubkey for username: %s" % (credentials.username)))
@@ -72,6 +75,9 @@ class ProxySSHUser(avatar.ConchUser):
         log.msg("Start SFTPServerProxyClient", logLevel=logging.DEBUG)
         sredis = StorageRedis()
         userinfo = sredis.get_userinfo(username)
+
+        log.msg("userinfo from redis",userinfo, logLevel=logging.DEBUG)
+
         self.proxyclient = SFTPServerProxyClient(
                 remote=userinfo['remote'],
                 port=int(userinfo['port']))

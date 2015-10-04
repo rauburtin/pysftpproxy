@@ -1,0 +1,8 @@
+This example covers the following use case:
+
+on 192.168.22.14, I have a docker host with a wordpress container 
+I want to allow end users to access the volume /var/www/html in a secure way (through a sftp reverse proxy)
+
+on 192.168.22.14, I start a sshd container with volumes from the wordpress container
+
+
