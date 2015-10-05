@@ -32,4 +32,8 @@ bin/pysftpproxy
 sftp  -P 5022 localhost
 ```
 	
+##TODO
+* Manage public and private keys for the client part of the proxy. At this time, the private and the public keys of the user who runs the code are used. 
+* Describe the docker use case 
+* Describe the data structure in Redis
 
