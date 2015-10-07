@@ -20,7 +20,7 @@ This program can be useful to redirect sftp user requests to a sftp container in
 
 * Docker Usage Example : Give to end users access to the volumes of a container in read/write with SFTP, for instance by using Filezilla
 
-For instance, you want to cover this kind of use case ![Image of Docker usage](https://rauburtin.github.com/pysftpproxy/examples/SFTPProxy.jpg)
+For instance, you want to cover this kind of use case ![Image of Docker usage](https://github.com/rauburtin/pysftpproxy/blob/master/examples/SFTPProxy.jpg)
 Let's imagine that you want to give acess to the volume of a wordpress container.
 You have a docker host (ex: 192.168.22.14).
 On this host, you have a running wordpress container (ex: wordpress_wordpress_1) .
