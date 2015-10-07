@@ -23,7 +23,7 @@ This program can be useful to redirect sftp user requests to a sftp container in
 For instance, you want to cover this kind of use case ![Image of Docker usage](https://github.com/rauburtin/pysftpproxy/blob/master/examples/SFTPProxy.jpg)
 Let's imagine that you want to give acess to the volume of a wordpress container.
 You have a docker host (ex: 192.168.22.14).
-On this host, you have a running wordpress container (ex: wordpress_wordpress_1) .
+On this host, you have a running wordpress container (ex: wordpress_wordpress_1).
 
     1. Run a sshd container (look at https://docs.docker.com/examples/running_ssh_service/)
 
@@ -46,13 +46,11 @@ On this host, you have a running wordpress container (ex: wordpress_wordpress_1)
 bin/pysftpproxy
 ```
 
-* Start a client such as sftp or filezilla and connect to the port of the reverse proxy (5022) in this sample
+* Start a client such as sftp or filezilla and connect to the port of the reverse proxy (5022 in this example)
 ```Shell
 sftp  -P 5022 localhost
 ```
 	
 ##TODO
 * Manage public and private keys for the client part of the proxy. At this time, the private and the public keys of the user who runs the code are used. 
-* Describe the docker use case 
-* Describe the data structure in Redis
 
