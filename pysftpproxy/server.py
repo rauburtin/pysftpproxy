@@ -143,8 +143,9 @@ class ProxySFTPSession(SFTPServerForUnixConchUser):
         if not hasattr(self.avatar.proxyclient, "client"):
             return {}
         else:
-            log.msg("gitVersion otherVersion:% extData:%" % (otherVersion, extData), logLevel=logging.DEBUG)
-            return self.avatar.proxyclient.client.gotVersion(otherVersion, extData)
+            return {}
+            #log.msg("gitVersion otherVersion:%s extData:%s" % (otherVersion, extData), logLevel=logging.DEBUG)
+            #return self.avatar.proxyclient.client.gotVersion(otherVersion, extData)
 
 
     def openFile(self, filename, flags, attrs):
