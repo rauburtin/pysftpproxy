@@ -80,8 +80,8 @@ class ProxySSHUser(avatar.ConchUser):
 
         self.proxyclient = SFTPServerProxyClient(
                 remote=userinfo['remote'],
-                port=int(userinfo['port']))
-
+                port=int(userinfo['port']),
+                user=userinfo['user'])
 
     def getUserGroupId(self):
         userid = int(os.environ.get("SFTPPROXY_USERID",1000))
@@ -140,12 +140,7 @@ class ProxySSHRealm:
 class ProxySFTPSession(SFTPServerForUnixConchUser):
 
     def gotVersion(self, otherVersion, extData):
-        if not hasattr(self.avatar.proxyclient, "client"):
-            return {}
-        else:
-            log.msg("gitVersion otherVersion:% extData:%" % (otherVersion, extData), logLevel=logging.DEBUG)
-            return self.avatar.proxyclient.client.gotVersion(otherVersion, extData)
-
+        return {}
 
     def openFile(self, filename, flags, attrs):
         log.msg("openFile filename:%s flags:%s attrs:%s" % (filename, flags, attrs), logLevel=logging.DEBUG)

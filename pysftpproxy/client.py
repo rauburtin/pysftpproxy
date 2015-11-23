@@ -52,11 +52,8 @@ class SFTPConnection(SSHConnection):
 class SFTPServerProxyClient(object): 
     def __init__(self, remote=None,
                  key=None, port=None,
-                 ssh_config_path=None, ssh_agent=False,
-                 known_hosts_path=None):
-
-
-        self.user = os.environ.get("SFTPPROXY_CLIENT_USER",'rauburtin')
+                 user=None, ssh_config_path=None,
+                 ssh_agent=False, known_hosts_path=None):
 
         self.host = 'localhost'
         if remote:
@@ -65,6 +62,10 @@ class SFTPServerProxyClient(object):
         self.port = 22
         if port:
             self.port = port
+
+        self.user = os.environ.get("SFTPPROXY_CLIENT_USER",'rauburtin')
+        if user:
+            self.user = user
 
         self.dcli = self.connect_sftp()
 

@@ -12,5 +12,5 @@ if len(pubkey.split())==2:
 username="rauburtin"
 
 sredis.add_username(pubkey,username)
-sredis.add_userinfo(username,"192.168.22.14","32772")
+sredis.add_userinfo(username,"192.168.22.14","32772","root")
 
