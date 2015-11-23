@@ -74,14 +74,14 @@ class ProxySSHUser(avatar.ConchUser):
         #need to pass the remote ssh server ip and port
         log.msg("Start SFTPServerProxyClient", logLevel=logging.DEBUG)
         sredis = StorageRedis()
-        userinfo = sredis.get_userinfo(username)
+        self.userinfo = sredis.get_userinfo(username)
 
-        log.msg("userinfo from redis",userinfo, logLevel=logging.DEBUG)
+        log.msg("userinfo from redis",self.userinfo, logLevel=logging.DEBUG)
 
         self.proxyclient = SFTPServerProxyClient(
-                remote=userinfo['remote'],
-                port=int(userinfo['port']),
-                user=userinfo['user'])
+                remote=self.userinfo['remote'],
+                port=int(self.userinfo['port']),
+                user=self.userinfo['user'])
 
     def getUserGroupId(self):
         userid = int(os.environ.get("SFTPPROXY_USERID",1000))
@@ -89,7 +89,7 @@ class ProxySSHUser(avatar.ConchUser):
         return userid,groupid
 
     def getHomeDir(self):
-        return os.environ.get("SFTPPROXY_HOME",'/home/rauburtin')
+        return self.userinfo.get('home', os.environ.get("SFTPPROXY_HOME",'/home/rauburtin'))
 
     def getOtherGroups(self):
         return self.otherGroups

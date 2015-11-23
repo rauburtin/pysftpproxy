@@ -21,9 +21,9 @@ class StorageRedis(object):
     def add_username(self,pubkey,username):
         return self.redis_conn.set("pysftpproxy:pubkey:%s" % (pubkey), username) 
 
-    def add_userinfo(self,username,remote,port,user):
+    def add_userinfo(self,username,remote,port,user,home):
         return self.redis_conn.hmset("pysftpproxy:user:%s" % (username),
-                {'remote':remote,'port':port,'user':user})
+                {'remote':remote,'port':port,'user':user,'home':home})
 
     def del_username(self,pubkey):
         return self.redis_conn.delete("pysftpproxy:pubkey:%s" % (pubkey))
